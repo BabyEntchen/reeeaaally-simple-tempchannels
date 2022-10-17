@@ -10,6 +10,6 @@ Tempchannel bot for easy to understand and modify for experienced and new develo
 ### Required knowledge:
 + **Python** • [Install Python](https://python.org)
 + **Pycord** • [Get started with Pycord](https://guide.pycord.dev)
-+ **JSON** • [Get started with JSON](https://www.w3schools.com/python/python_json.asp)
++ **SQLite** • [Get started with SQLite](https://www.sqlitetutorial.net/sqlite-python/)
 
 > Powered by bot-shop.me
