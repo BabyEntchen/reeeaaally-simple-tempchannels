@@ -10,8 +10,8 @@
 + **Public** • _The bot can be used on multiple servers right from the start._
 
 ### Required:
-+ Python
-+ Pycord
-+ SQLite
++ **Python** • _[https://python.org](Install Python)
++ **Pycord** • _[https://guide.pycord.dev](Get started with Pycord)
++ **SQLite** • _[https://www.sqlitetutorial.net](Get started with SQLite)
 
 > Powered by bot-shop.me
