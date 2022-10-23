@@ -76,12 +76,12 @@ async def _reset(ctx):
 
 @bot.event
 async def on_voice_state_update(member, before, after):
-    if await get_channel(after.guild.id) == after.channel.id:  # Checks if the channel is the one set in the database
+    if await get_channel(after.guild.id) == after.id:  # Checks if the channel is the one set in the database
         if member not in before.channel.members:  # Checks if the member is in the channel before the event was triggered
             await before.channel.clone(name=f"{member.name}'s channel")  # Clones the Tempchannel
             await member.move_to(before.channel)  # Moves the member to the new channel
             temp_channels.append(before.channel.id)  # Adds the channel to the list of temporary channels
-    if before.channel.id in temp_channels:  # Checks if the channel is a temporary channel
+    if before.id in temp_channels:  # Checks if the channel is a temporary channel
         if member not in after.channel.members:  # Checks if the member is in the channel after the event was triggered
             await after.channel.delete()  # Deletes the channel
             temp_channels.remove(after.channel.id)  # Removes the channel from the list of temporary channels
