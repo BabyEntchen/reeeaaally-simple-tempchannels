@@ -24,7 +24,7 @@ async def add_entry(channel_id: int, guild_id: int):
 
 
 async def create_db():
-    con = sqlite3.connect("database.db")
+    con = sqlite3.connect("data.db")
     cur = con.cursor()
     cur.execute("CREATE TABLE IF NOT EXISTS temp_channels (channel_id INTEGER, guild_id INTEGER)")
     con.commit()
@@ -46,7 +46,7 @@ async def get_channel(guild_id: int):
     c.execute("SELECT channel_id FROM temp_channels WHERE guild_id = ?", (guild_id,))
     channel = c.fetchone()
     conn.close()
-    return channel
+    return int(channel[0]) if channel is not None else None
 
 # ------------- Bot -------------
 bot = commands.Bot(command_prefix="!", intents=discord.Intents.all())  # You have to activate the intents in the developer portal (https://discord.com/developers/applications/your_app_id/bot)
@@ -76,15 +76,15 @@ async def _reset(ctx):
 
 @bot.event
 async def on_voice_state_update(member, before, after):
-    if await get_channel(after.guild.id) == after.id:  # Checks if the channel is the one set in the database
-        if member not in before.channel.members:  # Checks if the member is in the channel before the event was triggered
-            await before.channel.clone(name=f"{member.name}'s channel")  # Clones the Tempchannel
-            await member.move_to(before.channel)  # Moves the member to the new channel
-            temp_channels.append(before.channel.id)  # Adds the channel to the list of temporary channels
-    if before.id in temp_channels:  # Checks if the channel is a temporary channel
-        if member not in after.channel.members:  # Checks if the member is in the channel after the event was triggered
-            await after.channel.delete()  # Deletes the channel
-            temp_channels.remove(after.channel.id)  # Removes the channel from the list of temporary channels
+    if after.channel and await get_channel(after.channel.guild.id) == after.channel.id:  # Checks if the channel is the one set in the database
+        channel = await after.channel.clone(name=f"{member.name}'s channel")  # Clones the Tempchannel
+        await member.move_to(channel)  # Moves the member to the new channel
+        temp_channels.append(channel.id)  # Adds the channel to the list of temporary channels
+
+    if before.channel and before.channel.id in temp_channels:  # Checks if the channel is a temporary channel
+        if len(before.channel.members) == 0:  # Checks if the member is in the channel after the event was triggered
+            await before.channel.delete()  # Deletes the channel
+            temp_channels.remove(before.channel.id)  # Removes the channel from the list of temporary channels
 
 
 
