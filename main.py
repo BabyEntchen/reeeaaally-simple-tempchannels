@@ -50,7 +50,7 @@ async def get_channel(guild_id: int):
 
 # ------------- Bot -------------
 bot = commands.Bot(command_prefix="!", intents=discord.Intents.all())  # You have to activate the intents in the developer portal (https://discord.com/developers/applications/your_app_id/bot)
-temp_channels = []  # This is a list of all the temporary channels
+temp_channels = []  # This is a list of all the temporary channels (if you don't have much memory or too many servers also use databases to store this)
 
 
 @bot.event
