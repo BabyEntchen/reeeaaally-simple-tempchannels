@@ -8,49 +8,49 @@ import discord
 from discord.ext import commands
 from discord.commands import *
 import sqlite3
+import aiosqlite
 
 
 # ------------- Database Handler -------------
 async def add_entry(channel_id: int, guild_id: int):
-    conn = sqlite3.connect("data.db")
-    c = conn.cursor()
-    if await get_channel(guild_id) is None:
-        c.execute("INSERT INTO temp_channels VALUES (?, ?)", (channel_id, guild_id))
-    else:
-        c.execute("UPDATE temp_channels SET channel_id = ? WHERE guild_id = ?", (channel_id, guild_id))
-    conn.commit()
-    conn.close()
-    return True
+    async with aiosqlite.connect("data.db") as db:
+        c = await db.cursor()
+        if await get_channel(guild_id) is None:
+            await c.execute("INSERT INTO temp_channels VALUES (?, ?)", (channel_id, guild_id))
+        else:
+            await c.execute("UPDATE temp_channels SET channel_id = ? WHERE guild_id = ?", (channel_id, guild_id))
+        await db.commit()
+        await c.close()
 
 
 async def create_db():
-    con = sqlite3.connect("data.db")
-    cur = con.cursor()
-    cur.execute("CREATE TABLE IF NOT EXISTS temp_channels (channel_id INTEGER, guild_id INTEGER)")
-    con.commit()
-    con.close()
+    async with aiosqlite.connect("data.db") as db:
+        c = await db.cursor()
+        await c.execute("CREATE TABLE IF NOT EXISTS temp_channels (channel_id INTEGER, guild_id INTEGER)")
+        await db.commit()
+        await c.close()
 
 
 async def remove_entry(guild_id: int):
-    conn = sqlite3.connect("data.db")
-    c = conn.cursor()
-    c.execute("DELETE FROM temp_channels WHERE guild_id = ?", (guild_id,))
-    conn.commit()
-    conn.close()
-    return True
+    async with aiosqlite.connect("data.db") as db:
+        c = await db.cursor()
+        await c.execute("DELETE FROM temp_channels WHERE guild_id = ?", (guild_id,))
+        await db.commit()
+        await c.close()
 
 
 async def get_channel(guild_id: int):
-    conn = sqlite3.connect("data.db")
-    c = conn.cursor()
-    c.execute("SELECT channel_id FROM temp_channels WHERE guild_id = ?", (guild_id,))
-    channel = c.fetchone()
-    conn.close()
-    return int(channel[0]) if channel is not None else None
+    async with aiosqlite.connect("data.db") as db:
+        c = await db.cursor()
+        await c.execute("SELECT channel_id FROM temp_channels WHERE guild_id = ?", (guild_id,))
+        channel = await c.fetchone()
+        await c.close()
+        return int(channel[0]) if channel is not None else None
+
 
 # ------------- Bot -------------
 bot = commands.Bot(command_prefix="!", intents=discord.Intents.all())  # You have to activate the intents in the developer portal (https://discord.com/developers/applications/your_app_id/bot)
-temp_channels = []  # This is a list of all the temporary channels (if you don't have much memory or too many servers also use databases to store this)
+temp_channels = []  # This is a list of all the temporary channels
 
 
 @bot.event
@@ -59,7 +59,8 @@ async def on_ready():
     print(f'Logged in as {bot.user.name}')
 
 
-@bot.slash_command(name="set", permissions=["manage_channels"])
+@bot.slash_command(name="set")
+@commands.has_permissions(administrator=True)
 @option("channel", description="The channel to set")
 async def _set(ctx, channel: discord.VoiceChannel):
     """Set the channel to be used for temporary channels"""
@@ -68,6 +69,7 @@ async def _set(ctx, channel: discord.VoiceChannel):
 
 
 @bot.slash_command(name="reset")
+@commands.has_permissions(administrator=True)
 async def _reset(ctx):
     """Reset the channel to be used for temporary channels"""
     await remove_entry(ctx.guild.id)  # Removes the channel from the database
