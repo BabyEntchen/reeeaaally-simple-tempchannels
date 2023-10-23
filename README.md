@@ -1,6 +1,6 @@
 # reeeaaally-simple-tempchannels
 
-### Easy and Simple Tempchannels
+### Simple Tempchannel Bot
 Easy to understand and modify for experienced and new developers.
 
 ### Functions:
